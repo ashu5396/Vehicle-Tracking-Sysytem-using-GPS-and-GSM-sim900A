@@ -1,0 +1,89 @@
+#include<LiquidCrystal.h>
+
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
+SoftwareSerial serial_connection(11,10);
+SoftwareSerial gsm_con(8,9);
+TinyGPSPlus gps;
+LiquidCrystal lcd(7,6,5,4,3,2); 
+int temp=0;
+void setup()
+{
+  gsm_con.begin(9600);
+ 
+ Serial.begin(9600);
+ serial_connection.begin(9600);
+  lcd.begin(16,2);
+  lcd.print("Vehicle Tracking");
+  lcd.setCursor(0,1);
+  lcd.print("    System      ");
+   gsm_con.println("AT+CNMI=2,2,0,0,0");
+  delay(2000);
+ temp=0;
+ 
+   
+  
+ }
+ void loop()
+ {
+  
+  if(1)
+  {
+    gps1();
+    
+  }
+  
+ }
+
+ 
+void gps1()
+{
+
+ while(serial_connection.available())
+ {
+    gps.encode(serial_connection.read()); 
+    
+  } 
+  if(gps.location.isUpdated())
+  {
+    Serial.println("latitude:");
+    float a=(gps.location.lat());
+   Serial.println("longitude:");
+    float b=(gps.location.lng());
+    lcd.clear();
+    lcd.print("Latitude:");
+    lcd.print(a,6);
+    lcd.setCursor(0,1);
+    lcd.print("Longitude:");
+    lcd.print(b,6);
+    delay(5000);
+    SendMessage(a,b);
+    }
+    
+}
+ void SendMessage(float c,float d)
+{
+  
+  gsm_con.println("AT+CMGF=1");    //Sets the GSM Module in Text Mode
+  delay(1000);  // Delay of 1000 milli seconds or 1 second
+  gsm_con.println("AT+CMGS=\"+918910756985\"\r"); // Replace x with mobile number
+  delay(1000);
+  gsm_con.println("Your Vechile location is");// The SMS text you want to send
+  delay(100);
+  gsm_con.print("Latitude: ");
+  delay(100);
+ gsm_con.println(c,6);
+ delay(100);
+ gsm_con.print("Longitude: ");
+ delay(100);
+  gsm_con.println(d,6);
+  delay(100);
+  gsm_con.println("https://www.google.com/maps");
+   gsm_con.println((char)26);// ASCII code of CTRL+Z
+  delay(1000);
+  lcd.clear();
+  lcd.print("Message sent");
+  delay(5000);
+  
+}
+
